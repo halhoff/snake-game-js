@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang = "en">
+<html>
+    <head>
+        <meta charset = "UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>snake</title>
+        <style>
+            #game {
+                position: fixed;
+                top: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            body {
+                font-family: Consolas, 'Courier New', monospace;
+                text-align: center;
+                background-color: black;
+            }
+            .text-title {
+                color: white;
+                text-align: center;
+                font-family: Consolas, 'Courier New', monospace;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 class = "text-title">Snake by halhoff</h1>
+        <canvas id = "background" width = "850" height = "850"></canvas>
+        <canvas id = "game" width = "850" height = "850"></canvas>
+        <script src = "main.js"></script>
+        <script>
+
+            var startGame = 1;
+            preInitialize();
+
+            function runOnEnter(event) {
+                if (event.key === 'ArrowUp') {
+                    changeDirection('U');
+                    if (startGame || waiting) {
+                        waiting = 0;
+                        initialize();
+                    }
+                    startGame = 0;
+                }
+                else if (event.key === 'ArrowDown') {
+                    changeDirection('D');
+                    if (startGame || waiting) {
+                        waiting = 0;
+                        initialize();
+                    }
+                    startGame = 0;
+                }
+                else if (event.key === 'ArrowLeft') {
+                    changeDirection('L');
+                    if (startGame || waiting) {
+                        waiting = 0;
+                        initialize();
+                    }
+                    startGame = 0;
+                }
+                else if (event.key === 'ArrowRight') {
+                    changeDirection('R');
+                    if (startGame || waiting) {
+                        waiting = 0;
+                        initialize();
+                    }
+                    startGame = 0;
+                }
+                else if (event.key === 'Enter') {
+                    restart();
+                }
+            }
+
+            document.addEventListener('keydown', runOnEnter);
+
+        </script>
+    </body>
+</html>
