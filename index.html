@@ -22,10 +22,33 @@
                 text-align: center;
                 font-family: Consolas, 'Courier New', monospace;
             }
+            .text-box {
+                text-align: left;
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                background-color: rgba(53, 53, 53);
+                padding: 10px;
+                color: white;
+            }
+            .text-box ul {
+                padding-left: 10px;
+                margin-top: 10px;
+            }
+            .text-box ul li {
+                text-align: left;
+            }
         </style>
     </head>
     <body>
         <h1 class = "text-title">Snake by halhoff</h1>
+        <div class = "text-box">
+            Controls
+            <ul>
+                <li>Arrow keys to move</li>
+                <li>Press return to restart</li>
+            </ul>
+        </div>
         <canvas id = "background" width = "850" height = "850"></canvas>
         <canvas id = "game" width = "850" height = "850"></canvas>
         <script src = "main.js"></script>
