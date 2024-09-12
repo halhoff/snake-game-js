@@ -13,8 +13,6 @@ var directionQueue = [];
 var intervalId;
 var waiting = 0;
 
-// when you hit return after dying, the game does reload but the graphics dont
-
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
@@ -51,6 +49,7 @@ function restart() {
     appleY = 8;
     directionQueue = [];
     waiting = 1;
+    draw();
     initialize();
 }
 
