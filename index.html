@@ -46,52 +46,44 @@
             Controls
             <ul>
                 <li>Arrow keys to move</li>
-                <li>Press return to restart</li>
+                <li>Zoom out if not visible</li>
             </ul>
         </div>
-        <canvas id = "background" width = "850" height = "850"></canvas>
-        <canvas id = "game" width = "850" height = "850"></canvas>
+        <canvas id = "background" width = "950" height = "850"></canvas>
+        <canvas id = "game" width = "950" height = "850"></canvas>
         <script src = "main.js"></script>
         <script>
 
-            var startGame = 1;
-            preInitialize();
+            var firstPlay = true;
+            const arrowKeys = new Set([
+                'ArrowUp',
+                'ArrowDown',
+                'ArrowLeft',
+                'ArrowRight'
+            ]);
+            const keyMap = {
+                ArrowUp: 'U',
+                ArrowDown: 'D',
+                ArrowLeft: 'L',
+                ArrowRight: 'R'
+            };
+            initialize();
 
             function runOnEnter(event) {
-                if (event.key === 'ArrowUp') {
-                    changeDirection('U');
-                    if (startGame || waiting) {
-                        waiting = 0;
-                        initialize();
-                    }
-                    startGame = 0;
+                if (!running && !firstPlay && event.key === 'Enter') {
+                    waiting = true;
+                    gameOverToggle = false;
+                    initialize();
                 }
-                else if (event.key === 'ArrowDown') {
-                    changeDirection('D');
-                    if (startGame || waiting) {
-                        waiting = 0;
-                        initialize();
-                    }
-                    startGame = 0;
+                if (!running && !gameOverToggle && waiting && event.key in keyMap) {
+                    waiting = false;
+                    initialize();
+                    startGame();
                 }
-                else if (event.key === 'ArrowLeft') {
-                    changeDirection('L');
-                    if (startGame || waiting) {
-                        waiting = 0;
-                        initialize();
-                    }
-                    startGame = 0;
-                }
-                else if (event.key === 'ArrowRight') {
-                    changeDirection('R');
-                    if (startGame || waiting) {
-                        waiting = 0;
-                        initialize();
-                    }
-                    startGame = 0;
-                }
-                else if (event.key === 'Enter') {
-                    restart();
+                let newDirection = direction;
+                if (event.key in keyMap) { newDirection = keyMap[event.key]; }
+                if (directionQueue.length < 3) {
+                    directionQueue.push(newDirection);
                 }
             }
 

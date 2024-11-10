@@ -1,17 +1,51 @@
-const WIDTH = 750;
-const HEIGHT = 750;
-const UNITS = 50;
+const SCREEN_WIDTH = 850;
+const SCREEN_HEIGHT = 750;
+const UNIT_SIZE = 50;
+const GAME_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT) / (UNIT_SIZE * UNIT_SIZE);
 const DELAYMS = 100;
-var applesEaten = 0;
+var x = new Array(GAME_UNITS);
+var y = new Array(GAME_UNITS);
 var bodyParts = 4;
-var coordinates = [[3, 8], [4, 8], [5, 8], [6, 8]];
-var direction = 'R';
-var running = 0;
-var appleX = 11;
-var appleY = 8;
+var applesEaten = 0;
+var highestEaten = 0;
+var appleX;
+var appleY;
+var direction;
 var directionQueue = [];
+
+var running = false;
+var waiting = true;
+var gameOverToggle = false;
 var intervalId;
-var waiting = 0;
+
+var PIXEL_RATIO = (function () {
+    var ctx = document.createElement("canvas").getContext("2d"),
+        dpr = window.devicePixelRatio || 1,
+        bsr = ctx.webkitBackingStorePixelRatio ||
+              ctx.mozBackingStorePixelRatio ||
+              ctx.msBackingStorePixelRatio ||
+              ctx.oBackingStorePixelRatio ||
+              ctx.backingStorePixelRatio || 1;
+
+    return dpr / bsr;
+})();
+
+createHiDPICanvas = function(w, h, ratio) {
+    if (!ratio) { ratio = PIXEL_RATIO; }
+    var can = document.createElement("canvas");
+    can.width = w * ratio;
+    can.height = h * ratio;
+    can.style.width = w + "px";
+    can.style.height = h + "px";
+    can.getContext("2d").setTransform(ratio, 0, 0, ratio, 0, 0);
+    return can;
+}
+
+// const canvas = createHiDPICanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+// const ctx = canvas.getContext('2d');
+
+// const backgroundCanvas = createHiDPICanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+// const backgroundCtx = backgroundCanvas.getContext('2d');
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -19,38 +53,37 @@ const ctx = canvas.getContext('2d');
 const backgroundCanvas = document.getElementById('background');
 const backgroundCtx = backgroundCanvas.getContext('2d');
 
-function preInitialize() {
-    draw();
-}
-
 function initialize() {
-    if (waiting) return;
+    direction = 'R';
+    directionQueue.length = 0;
+    applesEaten = 0;
+    bodyParts = 4;
+    x[0] = UNIT_SIZE * 7;
+    y[0] = Math.floor((SCREEN_HEIGHT / 2) / UNIT_SIZE) * UNIT_SIZE + UNIT_SIZE;
+    for (let i = 1; i < bodyParts; ++i) {
+        x[i] = x[0] - i * UNIT_SIZE;
+        y[i] = y[0];
+    }
+    appleX = x[0] + UNIT_SIZE * 7;
+    appleY = y[0];
     if (intervalId) {
         clearInterval(intervalId);
     }
-    running = 1;
+    draw();
+}
+
+function startGame() {
+    waiting = false;
+    running = true;
+    firstPlay = false;
     intervalId = setInterval(() => {
         move();
+        checkApple();
         draw();
         if (!running) {
             clearInterval(intervalId);
-            if (!waiting) gameOver();
         }
     }, DELAYMS);
-}
-
-function restart() {
-    running = 0;
-    applesEaten = 0;
-    bodyParts = 4;
-    coordinates = [[3, 8], [4, 8], [5, 8], [6, 8]];
-    direction = 'R';
-    appleX = 11;
-    appleY = 8;
-    directionQueue = [];
-    waiting = 1;
-    draw();
-    initialize();
 }
 
 function move() {
@@ -64,62 +97,91 @@ function move() {
             direction = newDirection;
         }
     }
-    for (let i = 0; i < bodyParts - 1; ++i) {
-        coordinates[i] = [...coordinates[i + 1]];
-    }
+    var newX = x[0];
+    var newY = y[0];
     switch (direction) {
         case 'U':
-            coordinates[bodyParts - 1][1] -= 1;
+            if (y[0] === UNIT_SIZE) { running = false; }
+            else { newY = y[0] - UNIT_SIZE; }
             break;
         case 'D':
-            coordinates[bodyParts - 1][1] += 1;
+            if (y[0] === SCREEN_HEIGHT) { running = false; }
+            else { newY = y[0] + UNIT_SIZE; }
             break;
         case 'L':
-            coordinates[bodyParts - 1][0] -= 1;
+            if (x[0] === UNIT_SIZE) { running = false; }
+            else { newX = x[0] - UNIT_SIZE; }
             break;
         case 'R':
-            coordinates[bodyParts - 1][0] += 1;
+            if (x[0] === SCREEN_WIDTH) { running = false; }
+            else { newX = x[0] + UNIT_SIZE; }
             break;
     }
-    if ((coordinates[bodyParts - 1][0] === 0 && direction === 'L') ||
-        (coordinates[bodyParts - 1][0] === 16 && direction === 'R') ||
-        (coordinates[bodyParts - 1][1] === 0 && direction === 'U') || 
-        (coordinates[bodyParts - 1][1] === 16 && direction === 'D')) {
-        running = 0;
+    if (!running) {
+        checkCollisions();
+        return;
     }
-    for (let i = 0; i < bodyParts - 1; ++i) {
-        if (coordinates[bodyParts - 1][0] === coordinates[i][0] &&
-            coordinates[bodyParts - 1][1] === coordinates[i][1]) {
-            running = 0;
-            return;
+    for (let i = bodyParts; i > 0; --i) {
+        x[i] = x[i - 1];
+        y[i] = y[i - 1];
+    }
+    x[0] = newX;
+    y[0] = newY;
+    checkCollisions();
+}
+
+function checkCollisions() {
+    for (let i = bodyParts; i > 0; --i) {
+        if (x[0] === x[i] && y[0] === y[i]) {
+            running = false;
+            break;
         }
     }
-    checkApple();
+    if (x[0] < UNIT_SIZE) {
+        running = false;
+    }
+    else if (x[0] > SCREEN_WIDTH) {
+        running = false;
+    }
+    else if (y[0] < UNIT_SIZE){
+        running = false;
+    }
+    else if (y[0] > SCREEN_HEIGHT) {
+        running = false;
+    }
+    if (!running) {
+        waiting = true;
+        gameOverToggle = true;
+    }
 }
 
 function gameOver() {
-    ctx.font = "80px Consolas";
-    ctx.fillStyle = "black";
+    ctx.font = "75px Consolas";
+    ctx.fillStyle = "red";
     ctx.textAlign = "center";
-    ctx.fillText("Game Over", 850 / 2, 850 / 2);
+    ctx.fillText("Game Over", SCREEN_WIDTH / 2 + UNIT_SIZE, SCREEN_HEIGHT / 2 + UNIT_SIZE);
+    ctx.font = "20px Consolas"
+    ctx.fillText("Press ENTER to restart", SCREEN_WIDTH / 2 + UNIT_SIZE, SCREEN_HEIGHT / 2 + 2 * UNIT_SIZE);
 }
 
 function checkApple() {
-    if (coordinates[bodyParts - 1][0] === appleX && coordinates[bodyParts - 1][1] === appleY) {
+    if (x[0] === appleX && y[0] === appleY) {
         ++bodyParts;
-        coordinates.push(coordinates[coordinates.length - 1]);
         ++applesEaten;
+        if (applesEaten > highestEaten) {
+            highestEaten = applesEaten;
+        }
         spawnApple();
     }
 }
 
 function draw() {
     drawBackground();
-    ctx.clearRect(UNITS, UNITS, WIDTH, HEIGHT);
+    ctx.clearRect(UNIT_SIZE, UNIT_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT);
     ctx.font = "40px Consolas";
-    ctx.fillStyle = "white";
+    ctx.fillStyle = "red";
     ctx.textAlign = "left";    
-    ctx.fillText(`Score: ${applesEaten}`, 50, 40);
+    ctx.fillText(`Score: ${applesEaten} Highest: ${highestEaten}`, 50, 40);
     for (let i = 0; i < bodyParts; ++i) {
         if (i === 0) {
             ctx.fillStyle = "blue";
@@ -128,21 +190,24 @@ function draw() {
             let shade = Math.round(255 - (150 * i / bodyParts));
             ctx.fillStyle = `rgb(0, 0, ${shade})`;
         }
-        ctx.fillRect(coordinates[i][0] * UNITS, coordinates[i][1] * UNITS, UNITS, UNITS);
+        ctx.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
     }
     ctx.fillStyle = "red";
-    ctx.fillRect(appleX * UNITS, appleY * UNITS, UNITS, UNITS);
+    ctx.fillRect(appleX, appleY, UNIT_SIZE, UNIT_SIZE);
+    if (gameOverToggle) {
+        gameOver();
+    }
 }
 
 function spawnApple() {
-    let appleOnSnake = 1;
+    let appleOnSnake = true;
     while (appleOnSnake) {
-        appleOnSnake = 0;
-        appleX = Math.round(Math.random() * 14) + 1;
-        appleY = Math.round(Math.random() * 14) + 1;
+        appleOnSnake = false;
+        appleX = (Math.floor(Math.random() * (SCREEN_WIDTH / UNIT_SIZE)) + 1) * UNIT_SIZE;
+        appleY = (Math.floor(Math.random() * (SCREEN_HEIGHT / UNIT_SIZE)) + 1) * UNIT_SIZE;
         for (let i = 0; i < bodyParts; ++i) {
-            if (coordinates[i][0] === appleX && coordinates[i][1] === appleY) {
-                appleOnSnake = 1;
+            if (x[i] === appleX && y[i] === appleY) {
+                appleOnSnake = true;
                 break;
             }
         }
@@ -157,20 +222,20 @@ function changeDirection(newDirection) {
 
 function drawDefault() {
     backgroundCtx.fillStyle = "rgb(87, 138, 52)";
-    backgroundCtx.fillRect(0, 0, 850, 850);
-    for (let i = 1; i < WIDTH / UNITS + 1; ++i) {
-        for (let j = 1; j < HEIGHT / UNITS + 1; ++j) {
+    backgroundCtx.fillRect(0, 0, SCREEN_WIDTH + 2 * UNIT_SIZE, SCREEN_HEIGHT + 2 * UNIT_SIZE);
+    for (let i = 1; i < SCREEN_WIDTH / UNIT_SIZE + 1; ++i) {
+        for (let j = 1; j < SCREEN_HEIGHT / UNIT_SIZE + 1; ++j) {
             if ((i + j) % 2 === 0) {
                 backgroundCtx.fillStyle = "rgb(167, 218, 72)";
-                backgroundCtx.fillRect(i * UNITS, j * UNITS, UNITS, UNITS);
             }
             else {
                 backgroundCtx.fillStyle = "rgb(142, 205, 57)";
-                backgroundCtx.fillRect(i * UNITS, j * UNITS, UNITS, UNITS);
             }
+            backgroundCtx.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
         }
     }
 }
+
 function drawBackground() {
     ctx.drawImage(backgroundCanvas, 0, 0);
 }
