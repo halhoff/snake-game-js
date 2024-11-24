@@ -8,8 +8,7 @@ var y = new Array(GAME_UNITS);
 var bodyParts = 4;
 var applesEaten = 0;
 var highestEaten = 0;
-var appleX;
-var appleY;
+var apples = [];
 var direction;
 var directionQueue = [];
 
@@ -17,6 +16,51 @@ var running = false;
 var waiting = true;
 var gameOverToggle = false;
 var intervalId;
+
+const appleSlider = document.getElementById('slider');
+const appleCount = document.getElementById('appleValue');
+const validAppleCount = [1, 3, 5, 9];
+
+const appleImage = new Image();
+appleImage.src = "assets/apple.png";
+appleImage.onload = function() {
+    imageLoad();
+}
+
+const eyesImage = new Image();
+eyesImage.src = "assets/eyes.png";
+eyesImage.onload = function() {
+    imageLoad();
+}
+
+var imagesLoaded = 0;
+const totalImages = 2;
+
+function imageLoad() {
+    ++imagesLoaded;
+    if (imagesLoaded === totalImages) {
+        console.log("Images Loaded");
+        initialize();
+    }
+}
+
+function snapToValidAppleCount(value) {
+    if (value > 5) return 9;
+    return validAppleCount.find(val => val >= value);
+}
+
+slider.addEventListener('input', function() {
+    const snappedValue = snapToValidAppleCount(appleSlider.value);
+    appleSlider.value = snappedValue;
+    appleCount.textContent = snappedValue;
+    if (!running) initialize();
+});
+
+slider.addEventListener('keydown', function(event) {
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault();
+    }
+});
 
 var PIXEL_RATIO = (function () {
     var ctx = document.createElement("canvas").getContext("2d"),
@@ -53,9 +97,15 @@ const ctx = canvas.getContext('2d');
 const backgroundCanvas = document.getElementById('background');
 const backgroundCtx = backgroundCanvas.getContext('2d');
 
+// const canvas = createHiDPICanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+// const ctx = canvas.getContext('2d');
+// document.getElementById('game').appendChild(canvas);
+
+// const backgroundCanvas = createHiDPICanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+// const backgroundCtx = backgroundCanvas.getContext('2d');
+// document.getElementById('background').appendChild(backgroundCanvas);
+
 function initialize() {
-    direction = 'R';
-    directionQueue.length = 0;
     applesEaten = 0;
     bodyParts = 4;
     x[0] = UNIT_SIZE * 7;
@@ -64,8 +114,7 @@ function initialize() {
         x[i] = x[0] - i * UNIT_SIZE;
         y[i] = y[0];
     }
-    appleX = x[0] + UNIT_SIZE * 7;
-    appleY = y[0];
+    apples = initializeApples();
     if (intervalId) {
         clearInterval(intervalId);
     }
@@ -73,6 +122,8 @@ function initialize() {
 }
 
 function startGame() {
+    direction = 'R';
+    directionQueue.length = 0;
     waiting = false;
     running = true;
     firstPlay = false;
@@ -157,7 +208,7 @@ function checkCollisions() {
 
 function gameOver() {
     ctx.font = "75px Consolas";
-    ctx.fillStyle = "red";
+    ctx.fillStyle = "white";
     ctx.textAlign = "center";
     ctx.fillText("Game Over", SCREEN_WIDTH / 2 + UNIT_SIZE, SCREEN_HEIGHT / 2 + UNIT_SIZE);
     ctx.font = "20px Consolas"
@@ -165,21 +216,25 @@ function gameOver() {
 }
 
 function checkApple() {
-    if (x[0] === appleX && y[0] === appleY) {
-        ++bodyParts;
-        ++applesEaten;
-        if (applesEaten > highestEaten) {
-            highestEaten = applesEaten;
+    for (let i = 0; i < apples.length; ++i) {
+        if (x[0] === apples[i].x && y[0] === apples[i].y) {
+            ++bodyParts;
+            ++applesEaten;
+            if (applesEaten > highestEaten) {
+                highestEaten = applesEaten;
+            }
+            apples.splice(i, 1);
+            apples = apples.concat(spawnApples(1));
+            break;
         }
-        spawnApple();
     }
 }
 
 function draw() {
-    drawBackground();
+    ctx.drawImage(backgroundCanvas, 0, 0);
     ctx.clearRect(UNIT_SIZE, UNIT_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT);
     ctx.font = "40px Consolas";
-    ctx.fillStyle = "red";
+    ctx.fillStyle = "white";
     ctx.textAlign = "left";    
     ctx.fillText(`Score: ${applesEaten} Highest: ${highestEaten}`, 50, 40);
     for (let i = 0; i < bodyParts; ++i) {
@@ -192,32 +247,82 @@ function draw() {
         }
         ctx.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
     }
-    ctx.fillStyle = "red";
-    ctx.fillRect(appleX, appleY, UNIT_SIZE, UNIT_SIZE);
+    ctx.drawImage(eyesImage, x[0] + UNIT_SIZE / 4, y[0] + UNIT_SIZE / 4, UNIT_SIZE / 2, UNIT_SIZE / 2);
+    for (let i = 0; i < apples.length; ++i) {
+        ctx.drawImage(appleImage, apples[i].x, apples[i].y, UNIT_SIZE, UNIT_SIZE);
+    }
     if (gameOverToggle) {
         gameOver();
     }
 }
 
-function spawnApple() {
-    let appleOnSnake = true;
-    while (appleOnSnake) {
-        appleOnSnake = false;
-        appleX = (Math.floor(Math.random() * (SCREEN_WIDTH / UNIT_SIZE)) + 1) * UNIT_SIZE;
-        appleY = (Math.floor(Math.random() * (SCREEN_HEIGHT / UNIT_SIZE)) + 1) * UNIT_SIZE;
-        for (let i = 0; i < bodyParts; ++i) {
-            if (x[i] === appleX && y[i] === appleY) {
-                appleOnSnake = true;
-                break;
-            }
-        }
+function initializeApples() {
+    let newApples = [];
+    let numApples = parseInt(appleCount.textContent);
+    let centerX = x[0] + 7 * UNIT_SIZE;
+    let centerY = y[0];
+    if (numApples === 1) {
+        newApples.push({ x: centerX, y: centerY });
     }
+    else if (numApples === 3) {
+        newApples.push(
+            { x: centerX, y: centerY },
+            { x: centerX + 2 * UNIT_SIZE, y: centerY + 2 * UNIT_SIZE },
+            { x: centerX + 2 * UNIT_SIZE, y: centerY - 2 * UNIT_SIZE }
+        );
+    }
+    else if (numApples === 5) {
+        newApples.push(
+            { x: centerX, y: centerY },
+            { x: centerX - 2 * UNIT_SIZE, y: centerY + 2 * UNIT_SIZE },
+            { x: centerX - 2 * UNIT_SIZE, y: centerY - 2 * UNIT_SIZE },
+            { x: centerX + 2 * UNIT_SIZE, y: centerY + 2 * UNIT_SIZE },
+            { x: centerX + 2 * UNIT_SIZE, y: centerY - 2 * UNIT_SIZE }
+        );
+    }
+    else if (numApples === 9) {
+        newApples.push(
+            { x: centerX, y: centerY },
+            { x: centerX - 2 * UNIT_SIZE, y: centerY + 2 * UNIT_SIZE },
+            { x: centerX - 2 * UNIT_SIZE, y: centerY - 2 * UNIT_SIZE },
+            { x: centerX + 2 * UNIT_SIZE, y: centerY + 2 * UNIT_SIZE },
+            { x: centerX + 2 * UNIT_SIZE, y: centerY - 2 * UNIT_SIZE },
+            { x: centerX - 2 * UNIT_SIZE, y: centerY },
+            { x: centerX + 2 * UNIT_SIZE, y: centerY },
+            { x: centerX, y: centerY - 2 * UNIT_SIZE },
+            { x: centerX, y: centerY + 2 * UNIT_SIZE }
+        );
+    }
+    return newApples;
 }
 
-function changeDirection(newDirection) {
-    if (directionQueue.length === 0 || directionQueue[directionQueue.length - 1] !== newDirection) {
-        directionQueue.push(newDirection);
+function spawnApples(numApples) {
+    let newApples = [];
+    for (let i = 0; i < numApples; ++i) {
+        let appleOnSnake = true;
+        let appleOnApple = true;
+        let appleX, appleY;
+        while (appleOnSnake || appleOnApple) {
+            appleOnSnake = false;
+            appleOnApple = false;
+            appleX = (Math.floor(Math.random() * (SCREEN_WIDTH / UNIT_SIZE)) + 1) * UNIT_SIZE;
+            appleY = (Math.floor(Math.random() * (SCREEN_HEIGHT / UNIT_SIZE)) + 1) * UNIT_SIZE;
+            for (let j = 0; j < bodyParts; ++j) {
+                if (x[j] === appleX && y[j] === appleY) {
+                    appleOnSnake = true;
+                    break;
+                }
+            }
+            for (let j = 0; j < apples.length; ++j) {
+                if (apples[j].x === appleX && apples[j].y === appleY) {
+                    appleOnApple = true;
+                    break;
+                }
+            }
+        }
+        newApples.push({ x: appleX, y: appleY });
     }
+    return newApples;
 }
 
 function drawDefault() {
@@ -235,9 +340,4 @@ function drawDefault() {
         }
     }
 }
-
-function drawBackground() {
-    ctx.drawImage(backgroundCanvas, 0, 0);
-}
-
 drawDefault();

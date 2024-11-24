@@ -1,57 +1,31 @@
 <!DOCTYPE html>
-<html lang = "en">
+<html lang="en">
 <html>
     <head>
-        <meta charset = "UTF-8">
+        <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel = "stylesheet" href = "style.css">
         <title>snake</title>
-        <style>
-            #game {
-                position: fixed;
-                top: 80px;
-                left: 50%;
-                transform: translateX(-50%);
-            }
-            body {
-                font-family: Consolas, 'Courier New', monospace;
-                text-align: center;
-                background-color: black;
-            }
-            .text-title {
-                color: white;
-                text-align: center;
-                font-family: Consolas, 'Courier New', monospace;
-            }
-            .text-box {
-                text-align: left;
-                position: absolute;
-                top: 10px;
-                left: 10px;
-                background-color: rgba(53, 53, 53);
-                padding: 10px;
-                color: white;
-            }
-            .text-box ul {
-                padding-left: 10px;
-                margin-top: 10px;
-            }
-            .text-box ul li {
-                text-align: left;
-            }
-        </style>
     </head>
     <body>
-        <h1 class = "text-title">Snake by halhoff</h1>
-        <div class = "text-box">
-            Controls
-            <ul>
-                <li>Arrow keys to move</li>
-                <li>Zoom out if not visible</li>
-            </ul>
+        <h1 class="text-title">Snake by halhoff</h1>
+        <div class="left-container">
+            <div class="text-box">
+                <p>Controls:</p>
+                <ul>
+                    <li>Arrow keys to move</li>
+                    <li>Zoom out if not visible</li>
+                </ul>
+            </div>
+            <div class="sliders">
+                <p>Number of apples: </p>
+                <span id="appleValue">1</span>
+                <input type="range" id="slider" min="1" max="9" value="1" step="2">
+            </div>
         </div>
-        <canvas id = "background" width = "950" height = "850"></canvas>
-        <canvas id = "game" width = "950" height = "850"></canvas>
-        <script src = "main.js"></script>
+        <canvas id="background" width="950" height="850"></canvas>
+        <canvas id="game" width="950" height="850"></canvas>
+        <script src="main.js"></script>
         <script>
 
             var firstPlay = true;
@@ -67,9 +41,8 @@
                 ArrowLeft: 'L',
                 ArrowRight: 'R'
             };
-            initialize();
 
-            function runOnEnter(event) {
+            document.addEventListener('keydown', function(enter) {
                 if (!running && !firstPlay && event.key === 'Enter') {
                     waiting = true;
                     gameOverToggle = false;
@@ -77,7 +50,6 @@
                 }
                 if (!running && !gameOverToggle && waiting && event.key in keyMap) {
                     waiting = false;
-                    initialize();
                     startGame();
                 }
                 let newDirection = direction;
@@ -85,9 +57,7 @@
                 if (directionQueue.length < 3) {
                     directionQueue.push(newDirection);
                 }
-            }
-
-            document.addEventListener('keydown', runOnEnter);
+            });
 
         </script>
     </body>

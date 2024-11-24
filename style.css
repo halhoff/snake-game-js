@@ -1,0 +1,59 @@
+#game {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+body {
+  font-family: Consolas, 'Courier New', monospace;
+  text-align: center;
+  background-image: linear-gradient(to bottom right, green, blue);
+  margin: 0;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+.text-title {
+  color: white;
+  text-align: center;
+  font-family: Consolas, 'Courier New', monospace;
+}
+.left-container {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 300px;
+}
+.text-box {
+  text-align: left;
+  background-color: rgba(53, 53, 53);
+  padding: 10px;
+  margin-bottom: 5px;
+  color: white;
+}
+.text-box ul {
+  padding-left: 13px;
+  margin-top: 5px;
+  margin-bottom: -2px;
+}
+.text-box ul li {
+  text-align: left;
+  padding: 3px;
+}
+.text-box p {
+  margin: 0;
+  padding: 0;
+}
+.sliders {
+  text-align: left;
+  background-color: rgba(53, 53, 53);
+  padding: 10px;
+  color: white;
+}
+.sliders p {
+  margin: 0;
+  padding: 0;
+}
+.color-buttons {
+  text-align: left;
+  position: absolute;
+}
