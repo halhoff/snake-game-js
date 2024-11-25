@@ -53,7 +53,7 @@ slider.addEventListener('input', function() {
     const snappedValue = snapToValidAppleCount(appleSlider.value);
     appleSlider.value = snappedValue;
     appleCount.textContent = snappedValue;
-    if (!running) initialize();
+    if (!running && !gameOverToggle) initialize();
 });
 
 slider.addEventListener('keydown', function(event) {
@@ -85,25 +85,15 @@ createHiDPICanvas = function(w, h, ratio) {
     return can;
 }
 
-// const canvas = createHiDPICanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
-// const ctx = canvas.getContext('2d');
-
-// const backgroundCanvas = createHiDPICanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
-// const backgroundCtx = backgroundCanvas.getContext('2d');
-
-const canvas = document.getElementById('game');
+const canvas = createHiDPICanvas(SCREEN_WIDTH + UNIT_SIZE, SCREEN_HEIGHT + UNIT_SIZE);
+canvas.id = 'game';
 const ctx = canvas.getContext('2d');
+document.getElementById('game-container').appendChild(canvas);
 
-const backgroundCanvas = document.getElementById('background');
+const backgroundCanvas = createHiDPICanvas(SCREEN_WIDTH + 2 * UNIT_SIZE, SCREEN_HEIGHT + 2 * UNIT_SIZE);
+backgroundCanvas.id = 'background';
 const backgroundCtx = backgroundCanvas.getContext('2d');
-
-// const canvas = createHiDPICanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
-// const ctx = canvas.getContext('2d');
-// document.getElementById('game').appendChild(canvas);
-
-// const backgroundCanvas = createHiDPICanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
-// const backgroundCtx = backgroundCanvas.getContext('2d');
-// document.getElementById('background').appendChild(backgroundCanvas);
+document.getElementById('game-container').appendChild(backgroundCanvas);
 
 function initialize() {
     applesEaten = 0;
@@ -152,24 +142,69 @@ function move() {
     var newY = y[0];
     switch (direction) {
         case 'U':
-            if (y[0] === UNIT_SIZE) { running = false; }
-            else { newY = y[0] - UNIT_SIZE; }
+            if (y[0] === UNIT_SIZE) {
+                running = false;
+                break;
+            }
+            else if (bodyParts !== 4) {
+                for (let i = bodyParts - 1; i > 0; --i) {
+                    if (x[0] === x[i] && y[0] === y[i] + UNIT_SIZE) {
+                        running = false;
+                        break;
+                    }
+                }
+            }
+            newY = y[0] - UNIT_SIZE;
             break;
         case 'D':
-            if (y[0] === SCREEN_HEIGHT) { running = false; }
-            else { newY = y[0] + UNIT_SIZE; }
+            if (y[0] === SCREEN_HEIGHT) {
+                running = false;
+                break;
+            }
+            else if (bodyParts !== 4) {
+                for (let i = bodyParts - 1; i > 0; --i) {
+                    if (x[0] === x[i] && y[0] === y[i] - UNIT_SIZE) {
+                        running = false;
+                        break;
+                    }
+                }
+            }
+            newY = y[0] + UNIT_SIZE;
             break;
         case 'L':
-            if (x[0] === UNIT_SIZE) { running = false; }
-            else { newX = x[0] - UNIT_SIZE; }
+            if (x[0] === UNIT_SIZE) {
+                running = false;
+                break;
+            }
+            else if (bodyParts !== 4) {
+                for (let i = bodyParts - 1; i > 0; --i) {
+                    if (x[0] === x[i] + UNIT_SIZE && y[0] === y[i]) {
+                        running = false;
+                        break;
+                    }
+                }  
+            }
+            newX = x[0] - UNIT_SIZE;
             break;
         case 'R':
-            if (x[0] === SCREEN_WIDTH) { running = false; }
-            else { newX = x[0] + UNIT_SIZE; }
+            if (x[0] === SCREEN_WIDTH) {
+                running = false;
+                break;
+            }
+            else if (bodyParts !== 4) {
+                for (let i = bodyParts - 1; i > 0; --i) {
+                    if (x[0] === x[i] - UNIT_SIZE && y[0] === y[i]) {
+                        running = false;
+                        break;
+                    }
+                }
+            }
+            newX = x[0] + UNIT_SIZE;
             break;
     }
     if (!running) {
-        checkCollisions();
+        waiting = true;
+        gameOverToggle = true;
         return;
     }
     for (let i = bodyParts; i > 0; --i) {
@@ -178,32 +213,6 @@ function move() {
     }
     x[0] = newX;
     y[0] = newY;
-    checkCollisions();
-}
-
-function checkCollisions() {
-    for (let i = bodyParts; i > 0; --i) {
-        if (x[0] === x[i] && y[0] === y[i]) {
-            running = false;
-            break;
-        }
-    }
-    if (x[0] < UNIT_SIZE) {
-        running = false;
-    }
-    else if (x[0] > SCREEN_WIDTH) {
-        running = false;
-    }
-    else if (y[0] < UNIT_SIZE){
-        running = false;
-    }
-    else if (y[0] > SCREEN_HEIGHT) {
-        running = false;
-    }
-    if (!running) {
-        waiting = true;
-        gameOverToggle = true;
-    }
 }
 
 function gameOver() {
