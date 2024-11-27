@@ -4,7 +4,8 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel = "stylesheet" href = "style.css">
+        <link rel="stylesheet" href="style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
         <title>snake</title>
     </head>
     <body>
@@ -17,15 +18,24 @@
                     <li>Zoom out if not visible</li>
                 </ul>
             </div>
-            <div class="sliders">
+            <div class="text-box" style="border-top: 0px">
                 <p>Number of apples:</p>
-                <span id="appleValue">1</span>
-                <input type="range" id="slider" min="1" max="9" value="1" step="2">
+                <span id="appleValue" style="display: inline-block; margin-top: 8px">1</span>
+                <input type="range" id="slider" min="1" max="9" value="1" step="2" style="position: relative; top: 2px">
+            </div>
+            
+        </div>
+        <div class="right-container">
+            <div class="text-box" style="height: calc(100vh - 50px); padding: 10px;">
+                <p>Recent:</p>
+                <div id="recent"></div>
             </div>
         </div>
         <div id="game-container"></div>
         <script src="main.js"></script>
         <script>
+
+            drawDefault();
 
             var firstPlay = true;
             const arrowKeys = new Set([

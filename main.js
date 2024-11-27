@@ -27,14 +27,26 @@ appleImage.onload = function() {
     imageLoad();
 }
 
+const appleVictoryImage = new Image();
+appleVictoryImage.src = "assets/victory.png";
+appleVictoryImage.onload = function() {
+    imageLoad();
+}
+
 const eyesImage = new Image();
 eyesImage.src = "assets/eyes.png";
 eyesImage.onload = function() {
     imageLoad();
 }
 
+const eyesDeadImage = new Image();
+eyesDeadImage.src = "assets/dead.png";
+eyesDeadImage.onload = function() {
+    imageLoad();
+}
+
 var imagesLoaded = 0;
-const totalImages = 2;
+const totalImages = 4;
 
 function imageLoad() {
     ++imagesLoaded;
@@ -94,6 +106,11 @@ const backgroundCanvas = createHiDPICanvas(SCREEN_WIDTH + 2 * UNIT_SIZE, SCREEN_
 backgroundCanvas.id = 'background';
 const backgroundCtx = backgroundCanvas.getContext('2d');
 document.getElementById('game-container').appendChild(backgroundCanvas);
+
+const recentGames = [];
+const recentGamesOL = document.createElement('ol');
+const recentGamesList = document.getElementById('recent');
+recentGamesList.appendChild(recentGamesOL);
 
 function initialize() {
     applesEaten = 0;
@@ -216,11 +233,20 @@ function move() {
 }
 
 function gameOver() {
-    ctx.font = "75px Consolas";
-    ctx.fillStyle = "white";
+    const recentGame = `Apples: ${applesEaten} NumApples: ${parseInt(appleCount.textContent)}`;
+    updateRecentList(recentGame);
+    ctx.font = "75px Roboto";
     ctx.textAlign = "center";
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "black";
+    ctx.lineJoin = "round";
+    ctx.strokeText("Game Over", SCREEN_WIDTH / 2 + UNIT_SIZE, SCREEN_HEIGHT / 2 + UNIT_SIZE);
+
+    ctx.fillStyle = "white";
     ctx.fillText("Game Over", SCREEN_WIDTH / 2 + UNIT_SIZE, SCREEN_HEIGHT / 2 + UNIT_SIZE);
-    ctx.font = "20px Consolas"
+
+    ctx.font = "20px Roboto";
+    ctx.strokeText("Press ENTER to restart", SCREEN_WIDTH / 2 + UNIT_SIZE, SCREEN_HEIGHT / 2 + 2 * UNIT_SIZE);
     ctx.fillText("Press ENTER to restart", SCREEN_WIDTH / 2 + UNIT_SIZE, SCREEN_HEIGHT / 2 + 2 * UNIT_SIZE);
 }
 
@@ -242,10 +268,10 @@ function checkApple() {
 function draw() {
     ctx.drawImage(backgroundCanvas, 0, 0);
     ctx.clearRect(UNIT_SIZE, UNIT_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT);
-    ctx.font = "40px Consolas";
+    ctx.font = "30px Roboto";
     ctx.fillStyle = "white";
-    ctx.textAlign = "left";    
-    ctx.fillText(`Score: ${applesEaten} Highest: ${highestEaten}`, 50, 40);
+    ctx.textAlign = "left";
+    ctx.fillText(`Score: ${applesEaten}  Highest: ${highestEaten}`, 50, 36);
     for (let i = 0; i < bodyParts; ++i) {
         if (i === 0) {
             ctx.fillStyle = "blue";
@@ -256,12 +282,32 @@ function draw() {
         }
         ctx.fillRect(x[i], y[i], UNIT_SIZE, UNIT_SIZE);
     }
-    ctx.drawImage(eyesImage, x[0] + UNIT_SIZE / 4, y[0] + UNIT_SIZE / 4, UNIT_SIZE / 2, UNIT_SIZE / 2);
-    for (let i = 0; i < apples.length; ++i) {
-        ctx.drawImage(appleImage, apples[i].x, apples[i].y, UNIT_SIZE, UNIT_SIZE);
-    }
+    drawEyes();
+    drawApples();
     if (gameOverToggle) {
+        drawEyes();
+        drawApples();
         gameOver();
+    }
+    function drawEyes() {
+        if (gameOverToggle) {
+            ctx.drawImage(eyesDeadImage, x[0] + UNIT_SIZE / 8, y[0] + UNIT_SIZE / 8, 0.75 * UNIT_SIZE, 0.75 * UNIT_SIZE);
+        }
+        else {
+            ctx.drawImage(eyesImage, x[0] + UNIT_SIZE / 8, y[0] + UNIT_SIZE / 8, 0.75 * UNIT_SIZE, 0.75 * UNIT_SIZE);
+        }
+    }
+    function drawApples() {
+        if (gameOverToggle) {
+            for (let i = 0; i < apples.length; ++i) {
+                ctx.drawImage(appleVictoryImage, apples[i].x, apples[i].y, UNIT_SIZE, UNIT_SIZE);
+            }
+        }
+        else {
+            for (let i = 0; i < apples.length; ++i) {
+                ctx.drawImage(appleImage, apples[i].x, apples[i].y, UNIT_SIZE, UNIT_SIZE);
+            }
+        }
     }
 }
 
@@ -349,4 +395,10 @@ function drawDefault() {
         }
     }
 }
-drawDefault();
+
+function updateRecentList(item) {
+    if (!item) { return; }
+    const li = document.createElement('li');
+    li.textContent = item;
+    recentGamesOL.append(li);
+}
