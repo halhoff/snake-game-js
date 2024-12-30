@@ -1,74 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" href="/assets/favicon.png" type="image/x-icon">
-        <link rel="stylesheet" href="style.css">
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-        <title>Snake</title>
-    </head>
-    <body>
-        <h1 class="text-title">Snake by halhoff</h1>
-        <div class="left-container">
-            <div class="text-box">
-                <p>Controls:</p>
-                <ul>
-                    <li>Arrow keys to move</li>
-                    <li>Zoom out if not visible</li>
-                </ul>
-            </div>
-            <div class="text-box" style="border-top: 0px">
-                <p>Number of apples:</p>
-                <span id="appleValue" style="display: inline-block; margin-top: 8px">1</span>
-                <input type="range" id="slider" min="1" max="9" value="1" step="2" style="position: relative; top: 2px">
-            </div>
-            
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>Snake</title>
+</head>
+<body>
+    <h1 class="text-title">Snake by halhoff</h1>
+    <div class="left-container">
+        <div class="text-box">
+            <p>Controls:</p>
+            <ul>
+                <li>Arrow keys to move</li>
+                <li>Zoom out if not visible</li>
+            </ul>
         </div>
-        <div class="right-container">
-            <div class="text-box" style="height: calc(100vh - 50px); padding: 10px;">
-                <p>Recent:</p>
-                <div id="recent"></div>
-            </div>
+        <div class="text-box" style="border-top: 0px">
+            <p>Number of apples:</p>
+            <span id="appleValue" style="display: inline-block; margin-top: 8px">1</span>
+            <input type="range" id="slider" min="1" max="9" value="1" step="2" style="position: relative; top: 2px">
         </div>
-        <div id="game-container"></div>
-        <script src="main.js"></script>
-        <script>
+        
+    </div>
+    <div class="right-container">
+        <div class="text-box" style="height: calc(100vh - 50px); padding: 10px;">
+            <p>Recent:</p>
+            <div id="recent"></div>
+        </div>
+    </div>
+    <div id="game-container"></div>
+    <script src="main.js"></script>
+    <script>
+        drawDefault();
+        var firstPlay = true;
+        const arrowKeys = new Set([
+            'ArrowUp',
+            'ArrowDown',
+            'ArrowLeft',
+            'ArrowRight'
+        ]);
+        const keyMap = {
+            ArrowUp: 'U',
+            ArrowDown: 'D',
+            ArrowLeft: 'L',
+            ArrowRight: 'R'
+        };
 
-            drawDefault();
-
-            var firstPlay = true;
-            const arrowKeys = new Set([
-                'ArrowUp',
-                'ArrowDown',
-                'ArrowLeft',
-                'ArrowRight'
-            ]);
-            const keyMap = {
-                ArrowUp: 'U',
-                ArrowDown: 'D',
-                ArrowLeft: 'L',
-                ArrowRight: 'R'
-            };
-
-            document.addEventListener('keydown', function(enter) {
-                if (!running && !firstPlay && event.key === 'Enter') {
-                    waiting = true;
-                    gameOverToggle = false;
-                    initialize();
-                }
-                if (!running && !gameOverToggle && waiting && event.key in keyMap) {
-                    waiting = false;
-                    startGame();
-                }
-                let newDirection = direction;
-                if (event.key in keyMap) { newDirection = keyMap[event.key]; }
-                if (directionQueue.length < 3) {
-                    directionQueue.push(newDirection);
-                }
-            });
-
-        </script>
-    </body>
+        document.addEventListener('keydown', function(enter) {
+            if (!running && !firstPlay && event.key === 'Enter') {
+                waiting = true;
+                gameOverToggle = false;
+                initialize();
+            }
+            if (!running && !gameOverToggle && waiting && event.key in keyMap) {
+                waiting = false;
+                startGame();
+            }
+            let newDirection = direction;
+            if (event.key in keyMap) { newDirection = keyMap[event.key]; }
+            if (directionQueue.length < 3) {
+                directionQueue.push(newDirection);
+            }
+        });
+    </script>
+</body>
 </html>

@@ -1,7 +1,9 @@
-const SCREEN_WIDTH = 850;
-const SCREEN_HEIGHT = 750;
-const UNIT_SIZE = 50;
-const GAME_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT) / (UNIT_SIZE * UNIT_SIZE);
+const scale = Math.round(window.innerHeight / 1440 * 20) / 20;
+
+const UNIT_SIZE = Math.round(70 * scale);
+const SCREEN_WIDTH = UNIT_SIZE * 17;
+const SCREEN_HEIGHT = UNIT_SIZE * 15;
+const GAME_UNITS = Math.round((SCREEN_WIDTH * SCREEN_HEIGHT) / (UNIT_SIZE * UNIT_SIZE));
 const DELAYMS = 100;
 var x = new Array(GAME_UNITS);
 var y = new Array(GAME_UNITS);
@@ -51,7 +53,6 @@ const totalImages = 4;
 function imageLoad() {
     ++imagesLoaded;
     if (imagesLoaded === totalImages) {
-        console.log("Images Loaded");
         initialize();
     }
 }
@@ -97,7 +98,7 @@ createHiDPICanvas = function(w, h, ratio) {
     return can;
 }
 
-const canvas = createHiDPICanvas(SCREEN_WIDTH + UNIT_SIZE, SCREEN_HEIGHT + UNIT_SIZE);
+const canvas = createHiDPICanvas(SCREEN_WIDTH + 2 * UNIT_SIZE, SCREEN_HEIGHT + 2 * UNIT_SIZE);
 canvas.id = 'game';
 const ctx = canvas.getContext('2d');
 document.getElementById('game-container').appendChild(canvas);
@@ -106,6 +107,10 @@ const backgroundCanvas = createHiDPICanvas(SCREEN_WIDTH + 2 * UNIT_SIZE, SCREEN_
 backgroundCanvas.id = 'background';
 const backgroundCtx = backgroundCanvas.getContext('2d');
 document.getElementById('game-container').appendChild(backgroundCanvas);
+
+const canvasWidth = canvas.width;
+const gameContainer = document.getElementById('game-container');
+gameContainer.style.width = `${canvasWidth}px`;
 
 const recentGames = [];
 const recentGamesOL = document.createElement('ol');
@@ -235,7 +240,7 @@ function move() {
 function gameOver() {
     const recentGame = `Apples: ${applesEaten} NumApples: ${parseInt(appleCount.textContent)}`;
     updateRecentList(recentGame);
-    ctx.font = "75px Roboto";
+    ctx.font = `${90 * scale}px Roboto`;
     ctx.textAlign = "center";
     ctx.lineWidth = 4;
     ctx.strokeStyle = "black";
@@ -245,7 +250,7 @@ function gameOver() {
     ctx.fillStyle = "white";
     ctx.fillText("Game Over", SCREEN_WIDTH / 2 + UNIT_SIZE, SCREEN_HEIGHT / 2 + UNIT_SIZE);
 
-    ctx.font = "20px Roboto";
+    ctx.font = `${40 * scale}px Roboto`;
     ctx.strokeText("Press ENTER to restart", SCREEN_WIDTH / 2 + UNIT_SIZE, SCREEN_HEIGHT / 2 + 2 * UNIT_SIZE);
     ctx.fillText("Press ENTER to restart", SCREEN_WIDTH / 2 + UNIT_SIZE, SCREEN_HEIGHT / 2 + 2 * UNIT_SIZE);
 }
@@ -268,10 +273,10 @@ function checkApple() {
 function draw() {
     ctx.drawImage(backgroundCanvas, 0, 0);
     ctx.clearRect(UNIT_SIZE, UNIT_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT);
-    ctx.font = "30px Roboto";
+    ctx.font = `${40 * scale}px Roboto`;
     ctx.fillStyle = "white";
     ctx.textAlign = "left";
-    ctx.fillText(`Score: ${applesEaten}  Highest: ${highestEaten}`, 50, 36);
+    ctx.fillText(`Score: ${applesEaten}  Highest: ${highestEaten}`, UNIT_SIZE, UNIT_SIZE * 0.70);
     for (let i = 0; i < bodyParts; ++i) {
         if (i === 0) {
             ctx.fillStyle = "blue";

@@ -67,7 +67,7 @@ body {
   top: 80px;
   left: 50%;
   transform: translateX(-50%);
-  width: 950px;
+  width: auto;
 }
 #background {
   position: absolute;
