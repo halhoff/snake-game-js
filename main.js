@@ -272,7 +272,7 @@ function checkApple() {
 
 function draw() {
     ctx.drawImage(backgroundCanvas, 0, 0);
-    ctx.clearRect(UNIT_SIZE, UNIT_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.clearRect(0, 0, SCREEN_WIDTH + 2 * UNIT_SIZE, SCREEN_HEIGHT + 2 * UNIT_SIZE);
     ctx.font = `${40 * scale}px Roboto`;
     ctx.fillStyle = "white";
     ctx.textAlign = "left";
