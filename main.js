@@ -1,4 +1,4 @@
-const scale = Math.round(window.innerHeight / 1440 * 20) / 20;
+const scale = Math.min(Math.round(window.innerWidth / 3440 * 20) / 20, Math.round(window.innerHeight / 1440 * 20) / 20);
 
 const UNIT_SIZE = Math.round(70 * scale);
 const SCREEN_WIDTH = UNIT_SIZE * 17;
@@ -108,7 +108,7 @@ backgroundCanvas.id = 'background';
 const backgroundCtx = backgroundCanvas.getContext('2d');
 document.getElementById('game-container').appendChild(backgroundCanvas);
 
-const canvasWidth = canvas.width;
+const canvasWidth = canvas.width / PIXEL_RATIO;
 const gameContainer = document.getElementById('game-container');
 gameContainer.style.width = `${canvasWidth}px`;
 
